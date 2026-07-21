@@ -28,6 +28,7 @@
     const pickAdd = await window.cv3Picker.html('q');
     const pickFilter = await window.cv3Picker.html('f', { placeholder: 'כל התלמידים' });
     const catFilterOpts = cs.map(c => '<option value="' + c.id + '">' + esc(c.name) + '</option>').join('');
+    const isAdmin = (window.currentUser || {}).role === 'מנהל';
     page.innerHTML =
       '<div class="page-head"><button class="back" onclick="showPage(\'home\')">→ חזרה לתפריט</button><h2>מעקב תלמידים</h2>' +
       '<div class="head-actions"><button class="btn-ghost sm" id="behCsv"><i class="bi bi-download"></i> ייצוא דוח CSV</button></div></div>' +
@@ -35,7 +36,7 @@
         '<div class="qr-grid" style="grid-template-columns:repeat(3,1fr) auto">' +
           pickAdd +
           '<div style="display:flex;gap:6px"><select class="inp mb0" id="qCat" style="flex:1"><option value="">קטגוריה…</option>' + catOpts + '</select>' +
-            '<button class="btn-ghost sm" id="qCatAdd" type="button" title="הוסף קטגוריה"><i class="bi bi-plus-lg"></i></button></div>' +
+            (isAdmin ? '<button class="btn-ghost sm" id="qCatAdd" type="button" title="הוסף קטגוריה"><i class="bi bi-plus-lg"></i></button>' : '') + '</div>' +
           '<input class="inp mb0" id="qDate" type="date" value="' + today() + '" title="תאריך">' +
           '<input class="inp mb0" id="qTime" type="time" title="שעה">' +
           '<input class="inp mb0 fld-wide" id="qNote" placeholder="הערה" style="grid-column:1/-2">' +
@@ -49,8 +50,9 @@
 
     const pick = window.cv3Picker.wire(page, 'q');
     const fpick = window.cv3Picker.wire(page, 'f', () => draw());
-    // הוספת קטגוריה מהירה תוך כדי דיווח (נשמרת גם לניהול הקטגוריות)
-    page.querySelector('#qCatAdd').addEventListener('click', () => {
+    // הוספת קטגוריה מהירה תוך כדי דיווח — רק למנהל (בקשת עמנואל 20-07)
+    const qCatAddBtn = page.querySelector('#qCatAdd');
+    if (qCatAddBtn) qCatAddBtn.addEventListener('click', () => {
       window.UI.modal({
         title: 'קטגוריה חדשה', saveLabel: 'הוסף',
         bodyHTML: '<div class="form-grid"><label class="fld fld-wide"><span>שם הקטגוריה *</span><input class="inp mb0" id="nc_name" autofocus></label></div>',
@@ -67,6 +69,7 @@
       });
     });
     let list = evs;
+
     const filtered = () => {
       const f = fpick.value(), fc = page.querySelector('#fCat').value;
       return list.filter(e => (!f || String(e.student_id) === f) && (!fc || String(e.category_id) === fc));
@@ -107,17 +110,22 @@
     draw();
   }
 
-  // מחולל דף-לוג פשוט לקריאה/כתיבה (רמה + תאריך + הערה לתלמיד)
+  // מחולל דף-לוג פשוט לקריאה/כתיבה (תאריך עברי + הערה לתלמיד — בקשת עמנואל 20-07)
+  function hebrewDateToday() {
+    try { return new Intl.DateTimeFormat('he-u-ca-hebrew', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date()); }
+    catch (_) { return ''; }
+  }
   function makeLog(table, title, icon) {
     return async function (page) {
       const studs = await students();
       const nameOf = id => { const s = studs.find(x => x.id == id); return s ? s.name : '—'; };
       const pickHtml = await window.cv3Picker.html('l');
+      const hebToday = hebrewDateToday();
       page.innerHTML =
         '<div class="page-head"><button class="back" onclick="showPage(\'home\')">→ חזרה לתפריט</button><h2>' + title + '</h2></div>' +
         '<div class="qr-card"><h3><i class="bi ' + icon + '"></i> רישום חדש</h3><div class="qr-grid">' +
           pickHtml +
-          '<input class="inp mb0" id="lLevel" placeholder="רמה / הישג">' +
+          '<input class="inp mb0" id="lHeb" placeholder="תאריך עברי" value="' + esc(hebToday) + '">' +
           '<input class="inp mb0" id="lNote" placeholder="הערה (רשות)">' +
           '<button class="btn-primary sm" id="lSave"><i class="bi bi-plus-lg"></i> הוסף</button>' +
         '</div></div><div id="logList"></div>' +
@@ -128,16 +136,17 @@
       if (_ids) data = data.filter(x => _ids.includes(x.student_id));
       function draw() {
         page.querySelector('#logList').innerHTML = data.slice().reverse().map(x =>
-          '<div class="tl-item"><span class="sev-dot mid"></span><div class="tl-main"><strong>' + esc(nameOf(x.student_id)) + '</strong> · ' + esc(x.level) +
+          '<div class="tl-item"><span class="sev-dot mid"></span><div class="tl-main"><strong>' + esc(nameOf(x.student_id)) + '</strong>' +
+          (x.hebrew_date ? ' · ' + esc(x.hebrew_date) : (x.level ? ' · ' + esc(x.level) : '')) +
           (x.note ? ' <span class="tl-note">— ' + esc(x.note) + '</span>' : '') + '</div><div class="tl-meta">' + esc(x.date) + '</div></div>').join('');
         page.querySelector('#logEmpty').hidden = data.length > 0;
       }
       page.querySelector('#lSave').addEventListener('click', async () => {
         const sid = pick.value(); if (!sid) { window.UI.toast('בחר תלמיד', 'err'); return; }
-        const row = { student_id: Number(sid), level: page.querySelector('#lLevel').value.trim(), note: page.querySelector('#lNote').value.trim(), date: today() };
+        const row = { student_id: Number(sid), hebrew_date: page.querySelector('#lHeb').value.trim(), note: page.querySelector('#lNote').value.trim(), date: today() };
         const r = await window.store.add(table, row);
         data = data.concat([(r.data && r.data[0]) || row]);
-        page.querySelector('#lLevel').value = ''; page.querySelector('#lNote').value = '';
+        page.querySelector('#lHeb').value = hebrewDateToday(); page.querySelector('#lNote').value = '';
         draw(); window.UI.toast('נוסף');
       });
       draw();

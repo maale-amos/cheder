@@ -8,6 +8,7 @@ create table if not exists public.profiles (
   tz      text unique,           -- ת״ז (כניסה: ת״ז ממופה למייל סינתטי {tz}@bht.co.il)
   name    text not null default '',
   role    text not null default 'צוות',   -- מנהל / מורה / צוות
+  mode    text,                  -- full / readonly / writeonly (ריק = לפי התפקיד)
   perms   text[],                -- מסכים מורשים (null = כל הלא-ניהוליים; אכיפה ב-RLS/צד-שרת)
   active  boolean not null default true,
   created_at timestamptz not null default now()

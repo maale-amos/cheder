@@ -20,3 +20,6 @@ drop policy if exists subj_read on public.subjects;
 create policy subj_read on public.subjects for select using (auth.uid() is not null);
 drop policy if exists subj_admin on public.subjects;
 create policy subj_admin on public.subjects for all using (public.is_admin()) with check (public.is_admin());
+
+-- 21-07: מצב עבודה ידני למשתמש (גובר על ברירת-המחדל של התפקיד)
+alter table public.profiles add column if not exists mode text;

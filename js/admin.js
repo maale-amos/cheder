@@ -92,6 +92,10 @@
           '<label class="fld"><span>תפקיד</span><select class="inp mb0" id="u_role">' +
             ['מנהל', 'מחנך', 'מלמד', 'מפקח', 'מזכירה'].map(r => '<option' + ((u.role === r || (!u.role && r === 'מחנך')) ? ' selected' : '') + '>' + r + '</option>').join('') +
             '</select></label>' +
+          '<label class="fld"><span>מצב עבודה <small style="font-weight:400;color:var(--muted)">(ריק = לפי התפקיד)</small></span><select class="inp mb0" id="u_mode">' +
+            [['', 'לפי התפקיד'], ['full', 'מלא — צפייה ורישום'], ['readonly', 'צפייה בלבד'], ['writeonly', 'רישום בלבד']]
+              .map(([v, l]) => '<option value="' + v + '"' + ((u.mode || '') === v ? ' selected' : '') + '>' + l + '</option>').join('') +
+            '</select></label>' +
           '<div class="fld fld-wide"><span>כיתות מורשות</span><div class="cb-grid" id="classGrid">' + (clsBoxes || '<span class="tl-note">אין כיתות — הוסף כיתה קודם</span>') + '</div></div>' +
           '<div class="fld fld-wide"><span>מסכים מורשים <small style="font-weight:400;color:var(--muted)">— מנהל רואה הכל</small></span>' +
             '<div class="cb-grid" id="permGrid">' + permBoxes + '</div>' +
@@ -103,7 +107,7 @@
           const chosenPerms = [...mel.querySelectorAll('#permGrid input:checked')].map(c => c.value);
           const allIds = assignable.map(m => m.id);
           // perms=null → ברירת-מחדל לפי התפקיד (roleCaps); רק אם המנהל צמצם ידנית נשמור רשימה
-          const row = { name, phone, role, perms: (role === 'מנהל' || chosenPerms.length >= allIds.length) ? null : chosenPerms };
+          const row = { name, phone, role, mode: mel.querySelector('#u_mode').value || null, perms: (role === 'מנהל' || chosenPerms.length >= allIds.length) ? null : chosenPerms };
           row.password = pw || phone;   // סיסמה ראשונית = טלפון
           let uid;
           if (existing) { await window.store.update('users', u.id, row); Object.assign(u, row); uid = u.id; }
@@ -120,7 +124,7 @@
       const pg = mm.el.querySelector('#permGrid'), roleSel = mm.el.querySelector('#u_role');
       mm.el.querySelector('#permAll').addEventListener('click', () => pg.querySelectorAll('input').forEach(c => c.checked = true));
       mm.el.querySelector('#permNone').addEventListener('click', () => pg.querySelectorAll('input').forEach(c => c.checked = false));
-      const toggleAdmin = () => { const dis = roleSel.value === 'מנהל'; mm.el.querySelectorAll('#permGrid input, #classGrid input, #permAll, #permNone').forEach(el => { el.disabled = dis; }); };
+      const toggleAdmin = () => { const dis = roleSel.value === 'מנהל'; mm.el.querySelectorAll('#permGrid input, #classGrid input, #permAll, #permNone, #u_mode').forEach(el => { el.disabled = dis; }); };
       roleSel.addEventListener('change', toggleAdmin); toggleAdmin();
       // הצג/הסתר סיסמה (המנהל רשאי לראות ולערוך את סיסמת המשתמש)
       const pwInp = mm.el.querySelector('#u_pw'), pwBtn = mm.el.querySelector('#u_pw_show');

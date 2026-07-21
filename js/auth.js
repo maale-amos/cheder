@@ -44,7 +44,7 @@
       const u = users.find(x => (x.name === id || x.tz === id || x.phone === id) && x.password === pw && x.active !== false);
       if (!u) { msg.textContent = 'שם או סיסמה שגויים.'; return; }
       msg.textContent = '';
-      await setUser({ id: u.id, name: u.name, role: u.role, tz: u.tz, perms: u.perms });
+      await setUser({ id: u.id, name: u.name, role: u.role, tz: u.tz, perms: u.perms, mode: u.mode });
     } else {
       // Supabase: המזהה ממופה למייל סינתטי; הסיסמה מאומתת בצד-שרת (hashed)
       const email = id.includes('@') ? id : id + '@bht.co.il';
@@ -75,7 +75,9 @@
     const caps = roleCaps(u.role);
     // הרשאות מסך: אם המנהל הגדיר perms פרטניות למשתמש — הן גוברות; אחרת ברירת-מחדל לפי התפקיד
     A.perms = (u.perms && u.perms.length) ? u.perms : caps.perms;
-    A.mode = caps.mode;                // full / readonly / writeonly
+    // מצב עבודה: אם המנהל הגדיר מצב ידני למשתמש — הוא גובר על ברירת-המחדל של התפקיד.
+    // (בקשת עמנואל 21-07: מפקח שהורשה לדווח — התפקיד לבדו חסם אותו בצפייה-בלבד)
+    A.mode = (u.mode && ['full', 'readonly', 'writeonly'].includes(u.mode)) ? u.mode : caps.mode;
     A.scope = null;                    // null = הכל; מערך = כיתות מורשות
     if (caps.scoped && window.store) {
       try { const acc = await window.store.list('user_class_access', { eq: { user_id: u.id } }); A.scope = acc.map(x => x.class_id); } catch (_) { A.scope = []; }
@@ -107,7 +109,7 @@
   function changeOwnPassword() {
     const u = A.currentUser; if (!u) return;
     window.UI.modal({
-      title: 'שינוי הסיסמה שלי', saveLabel: 'עדכן סיסמה',
+      title: 'שינוי הסיסמה שלי', saveLabel: 'עדכן סיסמה', saveAlways: true,
       bodyHTML: '<div class="form-grid">' +
         '<label class="fld fld-wide"><span>סיסמה חדשה *</span><input class="inp mb0" id="cp_new" type="password" autocomplete="new-password"></label>' +
         '<label class="fld fld-wide"><span>אימות סיסמה *</span><input class="inp mb0" id="cp_conf" type="password" autocomplete="new-password"></label>' +
@@ -147,12 +149,12 @@
   }
 
   async function loadProfile(user) {
-    let role = 'צוות', name = user.email, perms = null;
+    let role = 'צוות', name = user.email, perms = null, mode = null;
     try {
       const { data } = await window.sb.from('profiles').select('*').eq('id', user.id).single();
-      if (data) { role = data.role || 'צוות'; name = data.name || user.email; perms = data.perms || null; }
+      if (data) { role = data.role || 'צוות'; name = data.name || user.email; perms = data.perms || null; mode = data.mode || null; }
     } catch (_) {}
-    setUser({ id: user.id, email: user.email, name, role, perms });
+    setUser({ id: user.id, email: user.email, name, role, perms, mode });
   }
 
   async function init() {

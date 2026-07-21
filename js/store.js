@@ -24,7 +24,7 @@
       { id: 7, name: 'משה קופמן', phone: '0527153995', password: '0527153995', role: 'מחנך' },
       { id: 8, name: 'גדליה גורפלד', phone: '0533199345', password: '0533199345', role: 'מלמד' },
       { id: 9, name: 'שלמה שטארק', phone: '0548408914', password: '0548408914', role: 'מלמד' },
-      { id: 10, name: 'רמי אברמוביץ', phone: '0556700049', password: '0556700049', role: 'מפקח' },
+      { id: 10, name: 'רמי אברמוביץ', phone: '0556700049', password: '0556700049', role: 'מפקח', mode: 'full' },
       { id: 11, name: 'מירי הולצמן', phone: '02-9931101', password: '02-9931101', role: 'מזכירה' },
     ],
     user_class_access: [

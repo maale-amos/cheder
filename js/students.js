@@ -102,8 +102,8 @@
         sec('רפואי', 'bi-capsule', med, x => li('<strong>' + esc(x.name) + '</strong>' + (x.details ? ' — ' + esc(x.details) : ''), x.kind === 'allergy' ? 'אלרגיה' : 'תרופה', 'hi')) +
         sec('שיחות', 'bi-chat-dots', cnv, c => li(esc(c.summary), c.date)) +
         sec('אסיפות הורים', 'bi-people', mtg, x => li(esc(x.summary), x.date)) +
-        sec('קריאה', 'bi-book', rdg, x => li('רמה: ' + esc(x.level) + (x.note ? ' — ' + esc(x.note) : ''), x.date)) +
-        sec('כתיבה', 'bi-pencil-square', wrt, x => li('רמה: ' + esc(x.level), x.date)) +
+        sec('קריאה', 'bi-book', rdg, x => li(esc(x.hebrew_date || x.level || '') + (x.note ? ' — ' + esc(x.note) : ''), x.date)) +
+        sec('כתיבה', 'bi-pencil-square', wrt, x => li(esc(x.hebrew_date || x.level || ''), x.date)) +
         (att.length ? '<div class="det-sec"><h4><i class="bi bi-calendar-check"></i> נוכחות <span class="det-badge">' + att.length + '</span></h4><div class="det-item"><span class="di-main">נוכח ' + att.filter(a => a.status === 'present').length + ' · איחורים ' + att.filter(a => a.status === 'late').length + ' · נעדר ' + att.filter(a => a.status === 'absent').length + '</span></div></div>' : '') +
         sec('שכר לימוד', 'bi-cash-coin', tui, t => li((esc(t.month) || '') + (t.amount ? ' · ₪' + esc(t.amount) : ''), t.status === 'paid' ? 'שולם' : 'חוב', t.status === 'paid' ? 'lo' : 'hi')) +
         '<div class="det-actions" style="margin-top:14px">' +
