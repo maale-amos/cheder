@@ -45,7 +45,7 @@
       const cf = page.querySelector('#stuClass').value;
       const sf = page.querySelector('#stuStatus').value;
       let rows = students;
-      if (q) rows = rows.filter(s => [s.name, s.parent_name, s.parent_phone].join(' ').includes(q));
+      if (q) rows = rows.filter(s => [s.name, s.parent_name, s.parent_phone, s.mother_name, s.mother_phone, s.mother_email].join(' ').includes(q));
       if (cf) rows = rows.filter(s => String(s.class_id) === cf);
       if (sf) rows = rows.filter(s => (s.status || '') === sf);
       const body = page.querySelector('#stuBody');
@@ -87,8 +87,12 @@
       m.el.querySelector('.modal-body').innerHTML =
         '<div class="det-head"><span class="ava lg">' + esc((s.name || '?').slice(0, 2)) + '</span>' +
         '<div><div class="det-name">' + esc(s.name) + '</div><span class="chip ' + (s.status === 'פעיל' ? 'ok' : 'off') + '">' + esc(s.status || '') + '</span></div></div>' +
-        '<div class="det-grid">' + row('כיתה', classNameOf(classes, s.class_id)) + row('שם הורה', s.parent_name) +
-          (s.parent_phone ? '<div class="det-row"><span class="det-lbl">טלפון</span><span class="det-val"><a href="tel:' + esc(s.parent_phone) + '">' + esc(s.parent_phone) + '</a></span></div>' : '') +
+        '<div class="det-grid">' + row('כיתה', classNameOf(classes, s.class_id)) +
+          row('שם אבא', s.parent_name) +
+          (s.parent_phone ? '<div class="det-row"><span class="det-lbl">טלפון אבא</span><span class="det-val"><a href="tel:' + esc(s.parent_phone) + '">' + esc(s.parent_phone) + '</a></span></div>' : '') +
+          row('שם אמא', s.mother_name) +
+          (s.mother_phone ? '<div class="det-row"><span class="det-lbl">טלפון אמא</span><span class="det-val"><a href="tel:' + esc(s.mother_phone) + '">' + esc(s.mother_phone) + '</a></span></div>' : '') +
+          (s.mother_email ? '<div class="det-row"><span class="det-lbl">מייל אמא</span><span class="det-val"><a href="mailto:' + esc(s.mother_email) + '">' + esc(s.mother_email) + '</a></span></div>' : '') +
           row('הערות', s.notes) + '</div>' +
         '<div class="det-stats">' +
           '<div class="ds"><b>' + beh.length + '</b><span>דיווחים</span></div>' +
@@ -123,8 +127,11 @@
         '<div class="form-grid">' +
         '<label class="fld"><span>שם התלמיד *</span><input class="inp mb0" id="f_name" value="' + esc(s.name) + '"></label>' +
         '<label class="fld"><span>כיתה</span><select class="inp mb0" id="f_class"><option value="">—</option>' + classOpts + '</select></label>' +
-        '<label class="fld"><span>שם הורה</span><input class="inp mb0" id="f_pname" value="' + esc(s.parent_name) + '"></label>' +
-        '<label class="fld"><span>טלפון הורה</span><input class="inp mb0" id="f_phone" value="' + esc(s.parent_phone) + '"></label>' +
+        '<label class="fld"><span>שם אבא</span><input class="inp mb0" id="f_pname" value="' + esc(s.parent_name) + '"></label>' +
+        '<label class="fld"><span>טלפון אבא</span><input class="inp mb0" id="f_phone" value="' + esc(s.parent_phone) + '"></label>' +
+        '<label class="fld"><span>שם אמא</span><input class="inp mb0" id="f_mname" value="' + esc(s.mother_name) + '"></label>' +
+        '<label class="fld"><span>טלפון אמא</span><input class="inp mb0" id="f_mphone" value="' + esc(s.mother_phone) + '"></label>' +
+        '<label class="fld"><span>מייל אמא</span><input class="inp mb0" id="f_memail" value="' + esc(s.mother_email) + '"></label>' +
         '<label class="fld"><span>סטטוס</span><select class="inp mb0" id="f_status"><option' + (s.status !== 'לא פעיל' ? ' selected' : '') + '>פעיל</option><option' + (s.status === 'לא פעיל' ? ' selected' : '') + '>לא פעיל</option></select></label>' +
         '<label class="fld fld-wide"><span>הערות</span><textarea class="inp mb0" id="f_notes" rows="2">' + esc(s.notes) + '</textarea></label>' +
         '</div>';
@@ -138,6 +145,9 @@
             class_id: m.querySelector('#f_class').value ? Number(m.querySelector('#f_class').value) : null,
             parent_name: m.querySelector('#f_pname').value.trim(),
             parent_phone: m.querySelector('#f_phone').value.trim(),
+            mother_name: m.querySelector('#f_mname').value.trim(),
+            mother_phone: m.querySelector('#f_mphone').value.trim(),
+            mother_email: m.querySelector('#f_memail').value.trim(),
             status: m.querySelector('#f_status').value,
             notes: m.querySelector('#f_notes').value.trim(),
           };
@@ -163,9 +173,9 @@
     }
 
     function exportCsv() {
-      const head = ['שם', 'כיתה', 'הורה', 'טלפון', 'סטטוס'];
+      const head = ['שם', 'כיתה', 'שם אבא', 'טלפון אבא', 'שם אמא', 'טלפון אמא', 'מייל אמא', 'סטטוס'];
       const lines = [head.join(',')].concat(students.map(s =>
-        [s.name, classNameOf(classes, s.class_id), s.parent_name, s.parent_phone, s.status].map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')));
+        [s.name, classNameOf(classes, s.class_id), s.parent_name, s.parent_phone, s.mother_name, s.mother_phone, s.mother_email, s.status].map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')));
       const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'students.csv'; a.click();
     }

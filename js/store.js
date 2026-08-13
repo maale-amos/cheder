@@ -32,8 +32,8 @@
       { id: 4, user_id: 5, class_id: 4 }, { id: 5, user_id: 6, class_id: 5 }, { id: 6, user_id: 7, class_id: 6 },
     ],
     students: [
-      { id: 1, name: 'תלמיד לדוגמה א׳', class_id: 1, parent_name: 'משפחת א׳', parent_phone: '050-0000001', status: 'פעיל', notes: 'ילד מתמיד' },
-      { id: 2, name: 'תלמיד לדוגמה ב׳', class_id: 1, parent_name: 'משפחת ב׳', parent_phone: '050-0000002', status: 'פעיל', notes: '' },
+      { id: 1, name: 'תלמיד לדוגמה א׳', class_id: 1, parent_name: 'משפחת א׳', parent_phone: '050-0000001', mother_name: 'אמא לדוגמה א׳', mother_phone: '052-0000011', mother_email: 'ima.a@example.com', status: 'פעיל', notes: 'ילד מתמיד' },
+      { id: 2, name: 'תלמיד לדוגמה ב׳', class_id: 1, parent_name: 'משפחת ב׳', parent_phone: '050-0000002', mother_name: 'אמא לדוגמה ב׳', mother_phone: '052-0000012', mother_email: 'ima.b@example.com', status: 'פעיל', notes: '' },
       { id: 3, name: 'תלמיד לדוגמה ג׳', class_id: 2, parent_name: 'משפחת ג׳', parent_phone: '050-0000003', status: 'פעיל', notes: '' },
       { id: 4, name: 'תלמיד לדוגמה ד׳', class_id: 3, parent_name: 'משפחת ד׳', parent_phone: '050-0000004', status: 'פעיל', notes: '' },
       { id: 5, name: 'תלמיד לדוגמה ה׳', class_id: 4, parent_name: 'משפחת ה׳', parent_phone: '050-0000005', status: 'פעיל', notes: '' },
