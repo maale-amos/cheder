@@ -45,7 +45,7 @@
       const cf = page.querySelector('#stuClass').value;
       const sf = page.querySelector('#stuStatus').value;
       let rows = students;
-      if (q) rows = rows.filter(s => [s.name, s.parent_name, s.parent_phone, s.mother_name, s.mother_phone, s.mother_email].join(' ').includes(q));
+      if (q) rows = rows.filter(s => [s.name, s.family, s.tz, s.parent_name, s.parent_phone, s.mother_name, s.mother_phone, s.mother_email].join(' ').includes(q));
       if (cf) rows = rows.filter(s => String(s.class_id) === cf);
       if (sf) rows = rows.filter(s => (s.status || '') === sf);
       const body = page.querySelector('#stuBody');
@@ -88,6 +88,10 @@
         '<div class="det-head"><span class="ava lg">' + esc((s.name || '?').slice(0, 2)) + '</span>' +
         '<div><div class="det-name">' + esc(s.name) + '</div><span class="chip ' + (s.status === 'פעיל' ? 'ok' : 'off') + '">' + esc(s.status || '') + '</span></div></div>' +
         '<div class="det-grid">' + row('כיתה', classNameOf(classes, s.class_id)) +
+          row('שם משפחה', s.family) +
+          row('תעודת זהות', s.tz) +
+          row('ת. לידה עברי', s.birthdate_heb) +
+          row('ת. לידה לועזי', s.birthdate) +
           row('שם אבא', s.parent_name) +
           (s.parent_phone ? '<div class="det-row"><span class="det-lbl">טלפון אבא</span><span class="det-val"><a href="tel:' + esc(s.parent_phone) + '">' + esc(s.parent_phone) + '</a></span></div>' : '') +
           row('שם אמא', s.mother_name) +
@@ -126,7 +130,11 @@
       const body =
         '<div class="form-grid">' +
         '<label class="fld"><span>שם התלמיד *</span><input class="inp mb0" id="f_name" value="' + esc(s.name) + '"></label>' +
+        '<label class="fld"><span>שם משפחה</span><input class="inp mb0" id="f_family" value="' + esc(s.family) + '"></label>' +
+        '<label class="fld"><span>תעודת זהות</span><input class="inp mb0" id="f_tz" value="' + esc(s.tz) + '"></label>' +
         '<label class="fld"><span>כיתה</span><select class="inp mb0" id="f_class"><option value="">—</option>' + classOpts + '</select></label>' +
+        '<label class="fld"><span>ת. לידה עברי</span><input class="inp mb0" id="f_bdheb" value="' + esc(s.birthdate_heb) + '"></label>' +
+        '<label class="fld"><span>ת. לידה לועזי</span><input type="date" class="inp mb0" id="f_bd" value="' + esc(s.birthdate) + '"></label>' +
         '<label class="fld"><span>שם אבא</span><input class="inp mb0" id="f_pname" value="' + esc(s.parent_name) + '"></label>' +
         '<label class="fld"><span>טלפון אבא</span><input class="inp mb0" id="f_phone" value="' + esc(s.parent_phone) + '"></label>' +
         '<label class="fld"><span>שם אמא</span><input class="inp mb0" id="f_mname" value="' + esc(s.mother_name) + '"></label>' +
@@ -140,8 +148,13 @@
         onSave: async (m) => {
           const name = m.querySelector('#f_name').value.trim();
           if (!name) { window.UI.toast('נא להזין שם', 'err'); return false; }
+          const bd = m.querySelector('#f_bd').value.trim();
           const row = {
             name,
+            family: m.querySelector('#f_family').value.trim(),
+            tz: m.querySelector('#f_tz').value.trim(),
+            birthdate_heb: m.querySelector('#f_bdheb').value.trim(),
+            birthdate: bd || null,
             class_id: m.querySelector('#f_class').value ? Number(m.querySelector('#f_class').value) : null,
             parent_name: m.querySelector('#f_pname').value.trim(),
             parent_phone: m.querySelector('#f_phone').value.trim(),
@@ -173,9 +186,9 @@
     }
 
     function exportCsv() {
-      const head = ['שם', 'כיתה', 'שם אבא', 'טלפון אבא', 'שם אמא', 'טלפון אמא', 'מייל אמא', 'סטטוס'];
+      const head = ['שם', 'שם משפחה', 'תעודת זהות', 'כיתה', 'ת. לידה עברי', 'ת. לידה לועזי', 'שם אבא', 'טלפון אבא', 'שם אמא', 'טלפון אמא', 'מייל אמא', 'סטטוס'];
       const lines = [head.join(',')].concat(students.map(s =>
-        [s.name, classNameOf(classes, s.class_id), s.parent_name, s.parent_phone, s.mother_name, s.mother_phone, s.mother_email, s.status].map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')));
+        [s.name, s.family, s.tz, classNameOf(classes, s.class_id), s.birthdate_heb, s.birthdate, s.parent_name, s.parent_phone, s.mother_name, s.mother_phone, s.mother_email, s.status].map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')));
       const blob = new Blob(['﻿' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'students.csv'; a.click();
     }
